@@ -25,7 +25,7 @@ class RedemptionLinksExport implements
     protected $importId;
     protected $baseUrl;
 
-    public function __construct(string $importId, string $baseUrl = 'https://app.rewardly.com/redeem-voucher')
+    public function __construct(string $importId, string $baseUrl = 'https://app.rewardly.com/redemption')
     {
         $this->importId = $importId;
         $this->baseUrl = $baseUrl;
@@ -57,7 +57,7 @@ class RedemptionLinksExport implements
     public function map($voucher): array
     {
         return [
-            "{$this->baseUrl}/{$voucher->code}",
+            "{$this->baseUrl}?code={$voucher->code}",
         ];
     }
 
