@@ -507,7 +507,7 @@
         <div class="container">
             <div class="hero-content mt-4">
                 {{-- <h1 class="hero-title">Redeem Your Voucher Now!</h1> --}}
-                <p class="hero-subtitle">Click the button below to claim your exclusive reward</p>
+                {{-- <p class="hero-subtitle">Click the button below to claim your exclusive reward</p> --}}
                 
                 <!-- Redemption Card -->
                 <div class="redemption-card mb-3">
@@ -625,7 +625,7 @@
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
-            <p class="footer-text">&copy; 2025 Rewardly. All rights reserved | AriffAzmi | 2025-10-16 08:34:33</p>
+            <p class="footer-text">&copy; 2025 Rewardly. All rights reserved.</p>
         </div>
     </footer>
 
