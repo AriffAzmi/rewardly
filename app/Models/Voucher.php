@@ -17,6 +17,7 @@ class Voucher extends Model
     const STATUS_ACTIVE = 1;
     const STATUS_INACTIVE = 0;
     const STATUS_USED = 2;
+    const STATUS_REDEEMED = 2; 
 
     protected $fillable = [
         'merchant_id',

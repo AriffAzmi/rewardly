@@ -2,6 +2,36 @@
 
 @section('title', 'Vouchers List')
 
+@push('styles')
+<style>
+    /* Fix pagination arrow size */
+    .pagination .page-link i {
+        font-size: 14px;
+        line-height: 1;
+    }
+    
+    /* Ensure pagination is properly aligned */
+    .pagination {
+        margin-bottom: 0;
+    }
+    
+    .pagination .page-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 36px;
+        height: 36px;
+        padding: 0.375rem 0.75rem;
+    }
+    
+    /* Fix counter animation */
+    .counter-value {
+        display: inline-block;
+        min-width: 40px;
+    }
+</style>
+@endpush
+
 @section('content')
 <!-- start page title -->
 <div class="row">
@@ -73,13 +103,13 @@
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div class="flex-grow-1 overflow-hidden">
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Used Vouchers</p>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Redeemed Vouchers</p>
                     </div>
                 </div>
                 <div class="d-flex align-items-end justify-content-between mt-4">
                     <div>
                         <h4 class="fs-22 fw-semibold ff-secondary mb-4">
-                            <span class="counter-value" data-target="{{ $usedCount ?? 0 }}">0</span>
+                            <span class="counter-value" data-target="{{ $redeemedCount ?? 0 }}">0</span>
                         </h4>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
@@ -189,9 +219,10 @@
                         <div class="col-xxl-2 col-sm-6">
                             <select name="status" class="form-select" data-choices>
                                 <option value="">All Status</option>
-                                <option value="{{ \App\Models\Voucher::STATUS_ACTIVE }}" {{ request('status') == \App\Models\Voucher::STATUS_ACTIVE ? 'selected' : '' }}>Active</option>
-                                <option value="{{ \App\Models\Voucher::STATUS_INACTIVE }}" {{ request('status') == \App\Models\Voucher::STATUS_INACTIVE ? 'selected' : '' }}>Inactive</option>
-                                <option value="{{ \App\Models\Voucher::STATUS_USED }}" {{ request('status') == \App\Models\Voucher::STATUS_USED ? 'selected' : '' }}>Used</option>
+                                <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>Active</option>
+                                <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>Inactive</option>
+                                <option value="2" {{ request('status') === '2' ? 'selected' : '' }}>Redeemed</option>
+                                <option value="3" {{ request('status') === '3' ? 'selected' : '' }}>Expired</option>
                             </select>
                         </div>
 
@@ -265,41 +296,49 @@
                                     @endif
                                 </td>
                                 <td class="denomination">
-                                    <span class="fw-semibold text-dark">{{ $voucher->formatted_denominations }}</span>
+                                    <span class="fw-semibold text-dark">RM {{ number_format($voucher->denominations, 2) }}</span>
                                 </td>
                                 <td class="discount">
                                     @if($voucher->discount_percentage > 0)
                                         <span class="badge bg-success-subtle text-success">
-                                            <i class="ri-price-tag-3-line align-middle me-1"></i>{{ $voucher->formatted_discount_percentage }}
+                                            <i class="ri-price-tag-3-line align-middle me-1"></i>{{ number_format($voucher->discount_percentage, 2) }}%
                                         </span>
                                     @else
                                         <span class="text-muted small">No discount</span>
                                     @endif
                                 </td>
                                 <td class="status">
-                                    @if($voucher->status === \App\Models\Voucher::STATUS_ACTIVE)
+                                    @if($voucher->status === 1)
                                         <span class="badge bg-success-subtle text-success">
                                             <i class="ri-checkbox-circle-line align-middle me-1"></i>Active
                                         </span>
-                                    @elseif($voucher->status === \App\Models\Voucher::STATUS_INACTIVE)
+                                    @elseif($voucher->status === 0)
                                         <span class="badge bg-secondary-subtle text-secondary">
                                             <i class="ri-close-circle-line align-middle me-1"></i>Inactive
                                         </span>
-                                    @elseif($voucher->status === \App\Models\Voucher::STATUS_USED)
+                                    @elseif($voucher->status === 2)
                                         <span class="badge bg-warning-subtle text-warning">
-                                            <i class="ri-shopping-bag-line align-middle me-1"></i>Used
+                                            <i class="ri-shopping-bag-line align-middle me-1"></i>Redeemed
+                                        </span>
+                                    @elseif($voucher->status === 3)
+                                        <span class="badge bg-danger-subtle text-danger">
+                                            <i class="ri-time-line align-middle me-1"></i>Expired
                                         </span>
                                     @else
                                         <span class="badge bg-light text-dark">Unknown</span>
                                     @endif
                                 </td>
                                 <td class="expiry">
-                                    <span class="{{ $voucher->is_expired ? 'text-danger fw-semibold' : 'text-muted' }}">
+                                    @if($voucher->expiry_date)
+                                    <span class="{{ $voucher->expiry_date->isPast() ? 'text-danger fw-semibold' : 'text-muted' }}">
                                         <i class="ri-calendar-line align-middle me-1"></i>{{ $voucher->expiry_date->format('d M Y') }}
-                                        @if($voucher->is_expired)
+                                        @if($voucher->expiry_date->isPast())
                                             <i class="ri-error-warning-fill align-middle ms-1 text-danger"></i>
                                         @endif
                                     </span>
+                                    @else
+                                    <span class="text-muted">N/A</span>
+                                    @endif
                                 </td>
                                 <td>
                                     <ul class="list-inline hstack gap-2 mb-0">
@@ -354,17 +393,10 @@
                     </table>
                 </div>
 
-                <!-- Pagination -->
+                <!-- Pagination - Buttons Only Centered -->
                 @if($vouchers->hasPages())
-                <div class="d-flex justify-content-between align-items-center mt-3">
-                    <div class="text-muted">
-                        Showing <span class="fw-semibold">{{ $vouchers->firstItem() }}</span> to 
-                        <span class="fw-semibold">{{ $vouchers->lastItem() }}</span> of 
-                        <span class="fw-semibold">{{ $vouchers->total() }}</span> results
-                    </div>
-                    <div>
-                        {{ $vouchers->appends(request()->query())->links() }}
-                    </div>
+                <div class="d-flex justify-content-center mt-4">
+                    {{ $vouchers->appends(request()->query())->links('pagination.custom') }}
                 </div>
                 @endif
             </div>
@@ -412,7 +444,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Voucher index page loaded', {
         user: 'AriffAzmi',
-        timestamp: '2025-10-14 06:58:43',
+        timestamp: '2025-10-16 10:20:18',
         total_vouchers: {{ $vouchers->total() }},
         current_page: {{ $vouchers->currentPage() }}
     });
@@ -457,19 +489,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const selected = document.querySelectorAll('input[name="voucher_ids[]"]:checked');
         const selectedCount = selected.length;
         
-        document.getElementById('selectedCount').textContent = selectedCount;
+        const countElement = document.getElementById('selectedCount');
+        if (countElement) {
+            countElement.textContent = selectedCount;
+        }
         
         // Update hidden inputs in bulk form
         const container = document.getElementById('selectedVouchersContainer');
-        container.innerHTML = '';
-        
-        selected.forEach(checkbox => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'voucher_ids[]';
-            input.value = checkbox.value;
-            container.appendChild(input);
-        });
+        if (container) {
+            container.innerHTML = '';
+            
+            selected.forEach(checkbox => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'voucher_ids[]';
+                input.value = checkbox.value;
+                container.appendChild(input);
+            });
+        }
     }
 
     // Show bulk actions modal when items are selected
@@ -488,7 +525,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Bulk delete modal opened', {
                 user: 'AriffAzmi',
                 selected_count: selected.length,
-                timestamp: '2025-10-14 06:58:43'
+                timestamp: '2025-10-16 10:20:18'
             });
         });
     }
@@ -504,15 +541,17 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         
         const container = document.querySelector('.card-body');
-        container.insertAdjacentHTML('afterbegin', alertHtml);
-        
-        setTimeout(function() {
-            const alert = container.querySelector('.alert');
-            if (alert) {
-                const bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
-            }
-        }, 5000);
+        if (container) {
+            container.insertAdjacentHTML('afterbegin', alertHtml);
+            
+            setTimeout(function() {
+                const alert = container.querySelector('.alert');
+                if (alert) {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }
+            }, 5000);
+        }
     }
 });
 

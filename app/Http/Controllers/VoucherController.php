@@ -56,7 +56,7 @@ class VoucherController extends Controller
             }
             
             // Order by latest
-            $vouchers = $query->latest()->paginate(20)->withQueryString();
+            $vouchers = $query->latest()->paginate(10)->withQueryString();
             
             // Get merchants for filter dropdown
             $merchants = Merchant::orderBy('company_name')->get();
