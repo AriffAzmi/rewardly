@@ -25,7 +25,7 @@ class RedemptionLinksExport implements
     protected $importId;
     protected $baseUrl;
 
-    public function __construct(string $importId, string $baseUrl = 'https://app.rewardly.com/redemption')
+    public function __construct(string $importId, string $baseUrl = 'https://app.rewardly.my/redemption')
     {
         $this->importId = $importId;
         $this->baseUrl = $baseUrl;
